@@ -209,6 +209,13 @@ now even an empty function should suffice. Open
     def index
     end
 
+By default, rails will search for a corresponding file named index.html.erb.
+Since we never created the file, trying to view this page will return an 
+error. Fortunately, the fix is simple, just create a new empty file named
+`index.html.erb` in your `app/views/users/` folder (notice that some editors
+will not save an empty file to disk, this can be overriden in Vim using `:w!`
+instead of the simple `:w`; another solution is to place some random html content
+in your new file).
 
 And we'll need to make a small addition to our application layout file. This
 file is located at `app/views/layouts/application.html.erb` and contain some
@@ -229,7 +236,7 @@ and below the "yield" statement will appear at the bottom:
     <% else %>
       <%= link_to 'sign in', new_user_session_path %>
       <%= link_to 'register', new_user_registration_path %>
-    <% end>
+    <% end %>
 
 This block of code is a bunch basic embedded ruby statement, the top one
 checks to see if the `current_user` variable is defined (which devise defines
