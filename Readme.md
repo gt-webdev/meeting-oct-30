@@ -164,7 +164,7 @@ right above the similar lines for 'email':
     ...
 
 Now, if we were to test this out, we'll receive a message saying that rails
-doesn't allow us to change `first\_name` and `last\_name`. We can prevent this
+doesn't allow us to change `first_name` and `last_name`. We can prevent this
 by openning `app/models/user.rb` and modifying the `attr_accessible` function
 call:
 
@@ -204,7 +204,7 @@ Now, let's just edit our routes file (found in `config/routes.rb`):
 
 we'll also need to create this `index` function that we're  referring to. for
 now even an empty function should suffice. Open 
-`app/controllers/users\_controller.rb` and add the following method:
+`app/controllers/users_controller.rb` and add the following method:
 
     def index
     end
