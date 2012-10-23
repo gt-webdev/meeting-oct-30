@@ -256,3 +256,7 @@ Now, before we run the server, let's run `rake routes` to make sure that our
 routes are set up correctly (it also doesn't hurt to run `rake db:migrate` to
 make sure that our database is up-to-date), and we can start our server with a
 simple `rails s` command.
+
+With our server running, we can go to [http://localhost:3000/](http://localhost:3000)
+and play around with our brand new app which now supports signing-in, signing-up and
+registration.
