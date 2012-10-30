@@ -1,6 +1,5 @@
-Introducing Bookface!
+What's on your mind?
 =====================
-
 
 Continuing from last week's meeting (sources are available 
 [here](git@github.com:gt-webdev/meeting-oct-23.git)), we'll be working with our
@@ -54,7 +53,7 @@ so we only need to add functionality to `show` a single user, and to show the
 app's main page (which is also mapped to "/" by the next line in the file).
 
 If you remember correctly, we only created an `index` folder in
-`app/controllers/users\_controller.rb`, if we don't want rails to give us an
+`app/controllers/users_controller.rb`, if we don't want rails to give us an
 error, we'll need to create a similar function for show.
 
 Add the follwing function into the users_controller.rb file:
@@ -79,7 +78,7 @@ and be named after the function. So create a file,
 <h1><%= @user.first_name %> <%= @user.last_name %></h1>
 ```
 
-This file just reads the `first\_name` and `last\_name` fields off of the user
+This file just reads the `first_name` and `last_name` fields off of the user
 we passed to the view from our `show` function and presents them as a heading.
 
 We can test everything we did so far by running `rake routes` followed by 
@@ -154,7 +153,7 @@ end
 We're defining two methods. One that creates statuses and one that removes them.
 These statuses will need to be mapped to routes, but you can already see that
 we'll need to see which user owns this status since we make use of the 
-`:user\_id` parameter.
+`:user_id` parameter.
 
 Now let's add these functions to our config/routes.rb file:
 
