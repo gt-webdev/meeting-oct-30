@@ -1,0 +1,17 @@
+<h1><%= @user.first_name %> <%= @user.last_name %></h1>
+
+<%= form_for [current_user, @status] do |f| %>
+  <%= f.label 'status' %>
+  <%= f.text_field :text %>
+
+  <%= f.submit %>
+
+<% end %>
+
+<ul>
+<% @statuses.each do |status| %>
+  <li><%= status.text %>
+  <%= link_to "DELETE", user_status_path(user_id: current_user, id: status), method: :delete %>
+  </li>
+<% end %>
+</ul>

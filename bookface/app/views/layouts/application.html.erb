@@ -9,6 +9,7 @@
 <body>
 <% if current_user %>
   <%= link_to 'sign out', destroy_user_session_path, method: :delete %>
+  <%= link_to "My Profile", user_path(current_user) %>
 <% else %>
   <%= link_to 'sign in', new_user_session_path %>
   <%= link_to 'register', new_user_registration_path %>

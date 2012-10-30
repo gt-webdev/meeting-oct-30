@@ -1,262 +1,224 @@
 Introducing Bookface!
 =====================
 
-Starting today, `{gt: webdev}` will be working on a brand now social-networking 
-site!
 
-This site is called Bookface, and it'll offer great features that help users
-connect with their friends and networks.
+Continuing from last week's meeting (sources are available 
+[here](git@github.com:gt-webdev/meeting-oct-23.git)), we'll be working with our
+**awesome** and **original** social networking site: `bookface`. This week 
+we'll discuss setting up relations between your models as we implement statuses.
+
+Statuses are, of course, short messages that users on our site can share with 
+their friends. The implementation we'll use for statuses will show how rails
+uses models and controllers to easily "link" between the objects we use in our
+app and present them in a sensible way.
 
 # Instructions
 
-## Creating a new project
+## Catching up with Bookface
 
-To start off, we'll need to have a new project. Fortunately, rails makes it 
-very easy to create a new project, just run `rails new bookface` in your
-terminal. This will create a new folder named 'bookface' in the same folder
-our terminal was "in" when we ran the command. While we're still in terminal,
-let's go into our new folder (`cd bookface`) and do some modifications.
+The instructions in this document expect you to have already completed last 
+weeks tutorial. If you haven't you can 'cheat' by cloning the final repository
+from last week's meeting. Doing so is as easy as:
 
-### the Gemfile
+    git clone https://github.com/gt-webdev/meeting-oct-23.git
 
-In our 'bookface' folder, there's a file named `Gemfile`. This file contain
-several statements, most of which begin with `gem` or `group`. Each `gem` 
-command represents a gem that our project requires (recall that a 'gem' is
-a package or a library of ruby code that we can import into a project and use).
+You'll probably want to make sure that you're in a folder where you'd like the
+project folder to be created.
 
-The first change we're going to make is needed by [heroku](http://heroku.com).
-By default, Ruby on Rails will use a database system called `sqlite3`, this
-SQL implementation makes it very quick and easy to set-up a database for a
-small project, but offers very poor performance and terrible scalability.
-In fact, heroku offers no support for sqlite, instead encouraging usage of
-a SQL system called `PostgreSQL` (pronounced 'Postgres' or 'Postgres SQL').
-If you have a Postgres server on your local machine you can replace the line
-which says `gem 'sqlite3'` with `gem 'pg'` (the 'pg' is the name of the gem
-used for interfacing a Postgres server), but in most cases it makes more sense
-to replace the line with a slightly more complex block:
+## the 'resources' function
 
-    group :development do
-      gem 'sqlite3'
-    end
+So far our config/routes.rb file doesn't contain too much. We already invoked
+the `devise` function for `:users` which set up the routes needed to create and
+use the user-objects which manages user-authentication. Now we're going to do
+a similar thing with the `users_controller` that we created last week.
 
-    group :production do
-      gem 'pg'
-    end
+What we're going to do is use the `resources` function which rails provide us.
+This function takes the name of a controller and maps specific paths and 
+methods to functions in the corresponding `_controller.rb` file. These paths
+and methods follow a common convention and can be changed later. Now, we're 
+going to change our `config/routes.rb` file so that it looks like this:
 
-By doing so, we cause our app to use sqlite3 on our local machine, but if we
-ever choose to push it to heroku (or other similar services), the app will
-switch to Postgres.
+```ruby
+Bookface::Application.routes.draw do
+  devise_for :users
+  resources :users, only: [:show, :index] # add this line to your routes.rb file!
+  root :to => 'users#index'
+# Comments have been removed for the sake of readability
+end
+```
 
-Now, before we close our Gemfile, let's import a new gem called `devise`, just
-add the following line somewhere in your Gemfile (make sure that it isn't
-within a `group` statement:
+Normally, just adding `resources :users` would be used. This would go ahead and 
+create routes that would be used for creating new users, deleting old ones, 
+modifying users, and so on. In this case, we have devise manage these actions
+so we only need to add functionality to `show` a single user, and to show the
+app's main page (which is also mapped to "/" by the next line in the file).
 
-    gem 'devise'
+If you remember correctly, we only created an `index` folder in
+`app/controllers/users\_controller.rb`, if we don't want rails to give us an
+error, we'll need to create a similar function for show.
 
-Now our Gemfile is all set to get started, we just need to install all the gems
-and we could get started. The program that manages gem installation is called 
-the `bundler` which we can invoke with the command line instruction `bundle`.
-To install our gems, just run `bundle install`.
+Add the follwing function into the users_controller.rb file:
 
-If you look at the output of `bundle install` you'll see a line similar to
-`Using devise (2.1.2)`, this is a good indication that your change was
-successful.
+```ruby
+def show
+  @user = User.find(params[:id])
+end
+```
 
-## User Management and Devise
+This function will be invoked when someone goes to `/users/:id` and it will pass
+local variable to a corresponding views file. In this case we're creating a
+variable named `@user` which will contain the user which is returned from 
+"searching" with the user_id which was a parameter in our path.
 
-User management is a relatively advanced topic in web-development. The biggest
-issue is usually security. Namely, it's the web-developers responsibility to 
-make sure that some information is not accessible to the general public.
-Naturally, the most important piece of information we need to keep is the
-password the user selected for his account.
+The last thing we need to make this work is create the views file for the 
+function. The file will need to be placed in the views folder for `users`
+and be named after the function. So create a file, 
+`app/views/users/show.html.erb`, and place the following code in it.
 
-Rather, than discuss cryptography and any one of the many approaches we can
-use to manage user accounts and passwords, we'll use the gem 'devise' which
-we imported earlier. More information on the gem can be found on [its official
-page on rubygems.org](http://rubygems.org/gems/devise).
+```erb
+<h1><%= @user.first_name %> <%= @user.last_name %></h1>
+```
 
-### rails generate
+This file just reads the `first\_name` and `last\_name` fields off of the user
+we passed to the view from our `show` function and presents them as a heading.
 
-One of the nice things that rails offers is the ability to generate predefined
-packages of code using built in "generators". These generators are invoked
-using the command line instruction `rails generate`. 
+We can test everything we did so far by running `rake routes` followed by 
+`rails s`. If you have a user set-up, you could just go to 
+(localhost:3000/users/1)[localhost:3000/users/1], otherwise you will need to create a user first.
 
-When we installed 'devise' using 'bundler', we also installed a generator
-which rails can use to produce sample code which we can use for quickly
-implementing user-management and authentication. In this tutorial we'll use
-this generator to create a starting point for our models and views for the 
-user object.
+All that's left to do is find a way to make it easier for users to get to
+their profile page. The easiest way would be to add a "My profile" link to
+the template layout for our site. Open `app/views/layout/application.html.erb`
+and add the following link to the page next to the links for "sign out":
 
-We begin by running `rails generate devise:install`, This command should output
-a message regarding changing some configurations, for now we can ignore this
-message. What the previous command did was copy some sample config files into
-our project that devise will use in our app. `config/initializers/devise.rb`
-cantains many settings and comments which can help customize devise's behavior.
+```erb
+<%= link_to "My Profile", user_path(current_user) %>
+```
 
-Now that devise is set-up, we can go ahead and generate our user models. In
-the past we may have used `rails generate model user` to create support for
-user-objects in our apps. Devise adds a similar function through its own
-generator, creating a devise-supported user model is done through the simple
-command: `rails generate devise user`.
+Now if you refresh the page or go to (localhost:300)[localhost:3000] while 
+logged in, you will see a "My Profile" link at the top.
 
-The output of our generator command should point out that a db-migration file
-was created. If we open the file we may notice that aside from commands that
-create the appropriate fields in the database, there are several commented-out
-commands. These commands control settings such as whether new accounts need
-to be confirmed via e-mail or whether a user should be "locked" if log-in is
-attempted too many times with wrong passwords. 
+## Models
 
-Usually, when some command we run creates db-migrations file, we'll need to
-go through the migration process. This is done by calling the smple command:
+Last week we created a model for `user`. But we did this through the `devise`
+gem. The main reason for doing so was because devise helped us by creating all
+sorts of files that contain the code needed to securely manage user accounts.
+This week, we want to create a new Model for the statuses that user can post.
 
-    rake db:migrate
+Generally, Models take on the role of storing (and managing) data. In most cases
+when you want data to be saved (e.g. the names of your users, the posts that 
+they make, etc.) you'll need to place this data in an appropriate model.
 
-`rake` is a small utility that uses a config file (named a Rakefile) to carry
-out build-tasks. In this case, we're telling rake to update our db with space
-for the new user-model that we created.
+Generating the model should seem familiar:
 
-### finalizing users
+    # rails g model status text:string user_id:integer
+    # rake db:migrate
+    # rails g controller statuses
 
-After the previous steps, we should be able to use our user-models. We can
-start our server using `rails s` (or `rails server`) and use a browser to open
-[http://localhost:3000/users/sign\_up](http://localhost:3000/users/sign_up).
-A sign-up form should be brought up. We can use this forrm to create a new
-account on bookface.
+With this we generated the model and controller for statuses. Now we'll need
+to add some content to the file we generated.
 
-Now we have users implemented, but there's still more we need to do. If you
-examine our sign-up page, you'll see that we don't have a way to input the
-user's first and last names. Fortunately, this is a common task in rails and
-there's a quick command that can help us get started:
+First off, we'll modify the `app/models/status.rb` file. This file is relatively 
+simple. we only need to use a function to indicate that the status objects belongs
+to users.
 
-    rails g migration add_names_to_users first_name:string last_name:string
+```ruby
+class Status < ActiveRecord::Base
+  belongs_to :user
+  attr_accessible :text, :user_id
+end
+```
 
-In this command, the `rails g` in just shorthand for `rails generate`; this
-is the same as using `rails s` instead of `rails server`. What we did, was
-create a new migration file (not too different from the one we created when
-we generated our 'devise users'). Running this migration file will create
-two new fields for our user-models. These fields are configured by the last
-two parameters of our command `first_name:string` and `last_name:string`. As
-you may expect, the twe fields we creatad are both strings which we named
-'first\_name' and 'last\_name'.
+A corresponding addition needs to be made to the `users.rb` file:
 
-As before, when we create a new migration file, we usually need to follow
-it up by running `rake db:migrate`.
+```ruby
+  has_many :statuses
+```
 
-Now, we'll need to create and modify the appropriate views to allow the user
-to add the first name and last name to their user account. We begin by
-generating our views through devise:
+The controller file is a little bit more complicated:
 
-    rails g devise:views
+```ruby
+class StatusesController < ApplicationController
+  def create
+    @status = current_user.statuses.create params[:status]
+    redirect_to user_path params[:user_id]
+  end
+  def destroy
+    @status = current_user.statuses.find params[:id]
+    @status.destroy
+    redirect_to user_path params[:user_id]
+  end
+end
+```
 
-Now, before we test this, we'll need to go in and manually add the fields
-for first and last names. All we need to do is open 
-`app/views/devise/registration/new.html.erb` and make the following additions
-right above the similar lines for 'email':
+We're defining two methods. One that creates statuses and one that removes them.
+These statuses will need to be mapped to routes, but you can already see that
+we'll need to see which user owns this status since we make use of the 
+`:user\_id` parameter.
 
-    ## app/views/devise/registration/new.html.erb
-    #
-    ...
-    <div><%= f.label :first_name %><br />
-    <%= f.text_field :first_name %></div>
+Now let's add these functions to our config/routes.rb file:
 
-    <div><%= f.label :last_name %><br />
-    <%= f.text_field :last_name %></div>
-    ...
+```ruby
+Bookface::Application.routes.draw do
+  devise_for :users
+  resources :users, only: [:show, :index] do
+    resources :statuses, only: [:create, :destroy]
+  end
+  root :to => 'users#index'
+end
+```
 
-Now, if we were to test this out, we'll receive a message saying that rails
-doesn't allow us to change `first_name` and `last_name`. We can prevent this
-by openning `app/models/user.rb` and modifying the `attr_accessible` function
-call:
+Notice that we added the routes using the same `resources` function as before
+although we "chained" it at the end of the previous call for `:user`. This
+effectively places the paths as a subset of the user path, so we'll need
+to specify a :user_id in our url before we specify the :id for the status
+we want to modify.
 
-    ## app/models/user.rb
-    #
-    ...
-    attr_accessible :email, :password, :password_confirmation, :remember_me, 
-                    :first_name, :last_name
-    ...
+At this point we can run `rake routes` to save the changes we made to the app
+in our `routes.rb` file.
 
-now if you run the server and open up 
-[http://localhost:3000/users/sign\_up](http://localhost:3000/users/sign_up),
-you should be able to input your first and last names.
+Now, all that's left to do is modify our show-user view to show statuses, this
+requires a bit of erb, but not much we haven't seen before:
 
-Our only remaining issue is that after signing-in, we're faced with the defailt
-"New Rails App" page. Although this could arguable be a decent front-page for
-bookface, our purposes are better served by removing this `index.html` file and
-creating  our own front page (we can delete the sample page by running
-`rm public/index.html`).
+```erb
+<h1><%= @user.first_name %> <%= @user.last_name %></h1>
 
-For now, we'll create a new Controller for the user-object which we'll also use
-to control our front page, we can generate it using (what else?) `rails g`:
+<%= form_for [current_user, @status] do |f| %>
+  <%= f.label 'status' %>
+  <%= f.text_field :text %>
 
-    rails g controller users
+  <%= f.submit %>
 
-Notice that we use the plural "users" and not "user", this is the common 
-rails convention for controller and issues could arise if you take the liberty
-to singularize nouns that rails expect to be plural.
+<% end %>
 
-Now, let's just edit our routes file (found in `config/routes.rb`):
+<ul>
+<%= @statuses.each do |status| %>
+  <li><%= status.text %>
+  <%= link_to "DELETE", user_status_path(user_id: current_user, id: status), method: :delete %>
+  </li>
+<% end %>
+</ul>
+```
 
-    ## config/routes.rb
-    #
-    ...
-    root :to => 'users#index'
-    ...
+The first part is a simple form that should be relatively intuitive, and 
+the second part is a quick list with special "DELETE" links that will 
+remove statuses from the database.
 
-we'll also need to create this `index` function that we're  referring to. for
-now even an empty function should suffice. Open 
-`app/controllers/users_controller.rb` and add the following method:
+And since we modified the view to deal with a new variable `@statuses` we'll
+probably want to add this to our `show` method in our users_controller.rb:
 
-    def index
-    end
+```ruby
+def show
+  @user = User.find(params[:id])
+  @status = current_user.statuses.build
+  @statuses = @user.statuses
+end
+```
 
-By default, rails will search for a corresponding file named index.html.erb.
-Since we never created the file, trying to view this page will return an 
-error. Fortunately, the fix is simple, just create a new empty file named
-`index.html.erb` in your `app/views/users/` folder (notice that some editors
-will not save an empty file to disk, this can be overriden in Vim using `:w!`
-instead of the simple `:w`; another solution is to place some random html content
-in your new file).
+The first variable we added `@status` creates an empty status object which
+we`ll save new data into if the user chooses to create a status with the
+form we provided. The second variable contains a list of all the statuses
+associated with a user.
 
-And we'll need to make a small addition to our application layout file. This
-file is located at `app/views/layouts/application.html.erb` and contain some
-sample html that's displayed as a part of every page in our app.
+Now, we can save our files and run `rails s` and start using statuses!
 
-If you open this layout file, you'll see that it's not really intricate, just
-your basic empty html page. The line that reads `<%= yield %>` is a placeholder
-for the specific page the user is trying to view. 
-
-Our goal is to add a sign-out, sign-in and a register buttons on every page.
-We also need to add some logic to determite when a user is or isn't signed-in.
-To do this we make tho following addition into the `<body>` of our document,
-any addition before the "yield" statement will appear at the top of our pages
-and below the "yield" statement will appear at the bottom:
-
-    <% if current_user %>
-      <%= link_to 'sign out', destroy_user_session_path, method: :delete %>
-    <% else %>
-      <%= link_to 'sign in', new_user_session_path %>
-      <%= link_to 'register', new_user_registration_path %>
-    <% end %>
-
-This block of code is a bunch basic embedded ruby statement, the top one
-checks to see if the `current_user` variable is defined (which devise defines
-for us if a user is currently logged in), and then displays the appropriate
-'sign out' link. If a user is not signed in, then we show a 'sign in' and 
-a 'register' links.
-
-In this case, `link_to` is a ruby function, which take two parameters and an
-optional third parameter. The first one is the text which will be displayed in
-the link, the second one is the name of the path we want to invoke, and the 
-third one is the http method we want to use, if the third parameter is not 
-specified, rails will assume we mean "GET". The paths we specify can be
-easily found by running (in terminal) `rake routes` and adding "\_path" to
-the value in the left-most column for the path we want to link to.
-
-Now, before we run the server, let's run `rake routes` to make sure that our
-routes are set up correctly (it also doesn't hurt to run `rake db:migrate` to
-make sure that our database is up-to-date), and we can start our server with a
-simple `rails s` command.
-
-With our server running, we can go to [http://localhost:3000/](http://localhost:3000)
-and play around with our brand new app which now supports signing-in, signing-up and
-registration.
